@@ -23,6 +23,8 @@ jobs:
   integration-test-job:
     name: Run integration tests
     runs-on: ubuntu-latest
+    env:
+        LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,15 +51,11 @@ jobs:
       - name: Start LocalStack with lstk
         run: |
           lstk start --non-interactive
-        env:
-          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-
+        
       - name: Load Cloud Pod
         run: |
           lstk snapshot load pod:quiz-base
-        env:
-          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-
+       
       - name: Run Integration Tests
         env:
           AWS_DEFAULT_REGION: us-east-1
