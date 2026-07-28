@@ -55,6 +55,8 @@ jobs:
       - name: Load Cloud Pod
         run: |
           lstk snapshot load pod:quiz-base
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
 
       - name: Run Integration Tests
         env:
