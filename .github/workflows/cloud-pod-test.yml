@@ -44,13 +44,20 @@ jobs:
         run: |
           pip install requests boto3 pytest localstack-sdk-python
 
-      
-       
-      # - name: Run Integration Tests
-      #   env:
-      #     AWS_DEFAULT_REGION: us-east-1
-      #     AWS_REGION: us-east-1
-      #     AWS_ACCESS_KEY_ID: test
-      #     AWS_SECRET_ACCESS_KEY: test
-      #   run: |
-      #     pytest tests/test_infra.py
+      - name: Install lstk
+        run: npm install -g @localstack/lstk
+
+      - name: Start LocalStack
+        run: lstk start --non-interactive
+
+      - name: Load Cloud Pod
+        run: lstk snapshot load pod:quiz-base
+ 
+      - name: Run Integration Tests
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+        run: |
+          pytest tests/test_infra.py
