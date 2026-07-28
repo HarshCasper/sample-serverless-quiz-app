@@ -1,0 +1,66 @@
+name: Run Cloud Pod Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # “At 00:00 on Sunday.”
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      runner-os:
+        default: ubuntu-latest
+        type: choice
+        options:
+          - ubuntu-latest
+
+
+jobs:
+  integration-test-job:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Dependencies
+        run: |
+          pip install requests boto3 pytest localstack-sdk-python
+
+      - name: Install lstk
+        run: |
+          npm install -g @localstack/lstk
+      
+      - name: Start LocalStack with lstk
+        run: |
+          lstk start --non-interactive
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+
+      - name: Load Cloud Pod
+        run: |
+          lstk snapshot load pod:quiz-base
+
+      - name: Run Integration Tests
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+        run: |
+          pytest tests/test_infra.py
